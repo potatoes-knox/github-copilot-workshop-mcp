@@ -1,0 +1,75 @@
+name: CI - TypeScript
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Detect TypeScript starter
+        id: detect
+        run: |
+          if [ -d starter/typescript ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip (no TypeScript starter)
+        if: steps.detect.outputs.present != 'true'
+        run: echo "starter/typescript not present; skipping."
+
+      - name: Setup Node.js
+        if: steps.detect.outputs.present == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Cache npm
+        if: steps.detect.outputs.present == 'true'
+        uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('starter/typescript/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/typescript
+        run: npm ci --no-audit --no-fund
+
+      - name: Lint and format check
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/typescript
+        run: npm run lint
+
+      - name: Typecheck
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/typescript
+        run: npm run typecheck
+
+      - name: Unit tests
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/typescript
+        run: npm run test -- tests/unit
+
+      - name: E2E tests
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/typescript
+        run: npm run test -- tests/e2e
+
+      - name: Coverage (>=50%)
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/typescript
+        run: npm run test:coverage

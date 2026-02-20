@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-yaml
+  - repo: local
+    hooks:
+      - id: csharp-lint
+        name: csharp lint (dotnet format + build)
+        entry: make -C starter/csharp lint
+        language: system
+        pass_filenames: false
+        files: ^starter/csharp/
+      - id: python-lint
+        name: python lint (ruff + mypy)
+        entry: make -C starter/python lint
+        language: system
+        pass_filenames: false
+        files: ^starter/python/
+      - id: typescript-lint
+        name: typescript lint (eslint + prettier)
+        entry: npm --prefix starter/typescript run lint
+        language: system
+        pass_filenames: false
+        files: ^starter/typescript/

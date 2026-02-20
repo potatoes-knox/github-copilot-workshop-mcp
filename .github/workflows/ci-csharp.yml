@@ -1,0 +1,70 @@
+name: CI - C#
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  csharp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Detect C# starter
+        id: detect
+        run: |
+          if [ -d starter/csharp ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip (no C# starter)
+        if: steps.detect.outputs.present != 'true'
+        run: echo "starter/csharp not present; skipping."
+
+      - name: Setup .NET
+        if: steps.detect.outputs.present == 'true'
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        if: steps.detect.outputs.present == 'true'
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('starter/csharp/**/*.sln', 'starter/csharp/**/*.csproj', 'starter/csharp/**/*.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/csharp
+        run: dotnet restore Starter.CSharp.sln
+
+      - name: Lint and static analysis
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/csharp
+        run: make lint
+
+      - name: Unit tests
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/csharp
+        run: dotnet test Starter.CSharp.sln -c Release --filter "FullyQualifiedName!~McpServerE2ETests"
+
+      - name: E2E tests
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/csharp
+        run: dotnet test Starter.CSharp.sln -c Release --filter "FullyQualifiedName~McpServerE2ETests"
+
+      - name: Coverage (>=50%)
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/csharp
+        run: make coverage
