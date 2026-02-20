@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=69.0.0", "wheel>=0.45.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "starter-python-mcp"
+version = "0.1.0"
+description = "Python MCP stdio starter server"
+requires-python = ">=3.12"
+dependencies = ["mcp>=1.26.0"]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.13.0",
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  "pytest-cov>=5.0.0",
+  "ruff>=0.12.0",
+]
+
+[project.scripts]
+starter-python-mcp = "starter_python_mcp.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "C4", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["starter_python_mcp"]
+
+[[tool.mypy.overrides]]
+module = ["starter_python_mcp.server"]
+disallow_untyped_calls = false
+disallow_untyped_decorators = false

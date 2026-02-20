@@ -1,0 +1,70 @@
+name: CI - Python
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Detect Python starter
+        id: detect
+        run: |
+          if [ -d starter/python ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip (no Python starter)
+        if: steps.detect.outputs.present != 'true'
+        run: echo "starter/python not present; skipping."
+
+      - name: Setup Python
+        if: steps.detect.outputs.present == 'true'
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        if: steps.detect.outputs.present == 'true'
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('starter/python/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/python
+        run: make install
+
+      - name: Lint, format, and typecheck
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/python
+        run: make lint
+
+      - name: Unit tests
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/python
+        run: pytest tests/unit
+
+      - name: E2E tests
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/python
+        run: pytest tests/e2e
+
+      - name: Coverage (>=50%)
+        if: steps.detect.outputs.present == 'true'
+        working-directory: starter/python
+        run: make coverage
