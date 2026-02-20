@@ -1,0 +1,74 @@
+name: CI - Pre-commit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Detect Python starter
+        id: python
+        run: |
+          if [ -d starter/python ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Detect TypeScript starter
+        id: typescript
+        run: |
+          if [ -d starter/typescript ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Cache pre-commit
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pre-commit-
+
+      - name: Install pre-commit
+        run: python -m pip install pre-commit
+
+      - name: Install Python dev dependencies
+        if: steps.python.outputs.present == 'true'
+        run: python -m pip install -e "starter/python[dev]"
+
+      - name: Install TypeScript dependencies
+        if: steps.typescript.outputs.present == 'true'
+        run: npm --prefix starter/typescript ci --no-audit --no-fund
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files
