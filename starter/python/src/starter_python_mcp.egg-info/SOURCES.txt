@@ -1,0 +1,12 @@
+pyproject.toml
+src/starter_python_mcp/__init__.py
+src/starter_python_mcp/__main__.py
+src/starter_python_mcp/main.py
+src/starter_python_mcp/server.py
+src/starter_python_mcp/tool_handlers.py
+src/starter_python_mcp.egg-info/PKG-INFO
+src/starter_python_mcp.egg-info/SOURCES.txt
+src/starter_python_mcp.egg-info/dependency_links.txt
+src/starter_python_mcp.egg-info/entry_points.txt
+src/starter_python_mcp.egg-info/requires.txt
+src/starter_python_mcp.egg-info/top_level.txt

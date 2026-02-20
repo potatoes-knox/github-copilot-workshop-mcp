@@ -1,0 +1,2 @@
+[console_scripts]
+starter-python-mcp = starter_python_mcp.main:main
