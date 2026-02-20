@@ -1,0 +1,26 @@
+# Local workspace
+code/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# TypeScript / Node
+node_modules/
+coverage/
+*.tsbuildinfo
+
+# C#
+bin/
+obj/
+*.user
+*.rsuser
+*.suo

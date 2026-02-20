@@ -1,0 +1,48 @@
+name: CI - C#
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  csharp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: starter/csharp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('starter/csharp/**/*.sln', 'starter/csharp/**/*.csproj', 'starter/csharp/**/*.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore Starter.CSharp.sln
+
+      - name: Lint and static analysis
+        run: make lint
+
+      - name: Unit tests
+        run: dotnet test Starter.CSharp.sln -c Release --filter "FullyQualifiedName!~McpServerE2ETests"
+
+      - name: E2E tests
+        run: dotnet test Starter.CSharp.sln -c Release --filter "FullyQualifiedName~McpServerE2ETests"
+
+      - name: Coverage (>=50%)
+        run: make coverage
