@@ -24,3 +24,4 @@ obj/
 *.user
 *.rsuser
 *.suo
+coverage.cobertura.xml
